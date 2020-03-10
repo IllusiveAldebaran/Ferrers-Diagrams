@@ -1,6 +1,6 @@
 from manimlib.imports import *
 import numpy as np
-
+# (down, right)
 class FerrersDiagram(VGroup):
     def __init__(self, partition_sequence, padding = .5, center_x = 0, center_y = 0):
         self.partition_sequence = partition_sequence
@@ -147,7 +147,6 @@ class SortingParts(AnimationGroup):
             ferrer.updateDictionary()
             ferrer.updateParts()
         super().__init__(*animations)
-
     def check_if_input_is_ferrers_diagram(self, ferrer):
         if not isinstance(ferrer, FerrersDiagram):
             raise Exception("Convolution must take in a Ferrer's Diagram object")
@@ -212,10 +211,77 @@ class Conjugating(Rotating):
             about_edge=self.about_edge,
         )
 
+class FranklinInvoluting(Succession):
+    def __init__(self, ferrer):
+        if not list(ferrer.partition_sequence) == sorted(list(ferrer.partition_sequence), reverse=True):
+            raise Exception("Ferrer's diagram must be sorted for a visual display of Franklin involution. Run the Sorting animation first.")
+        animations = [ScaleInPlace(ferrer, 1)]
+        self.mobject = ferrer
+        partition_sequence = ferrer.partition_sequence
+        diagonal_group = VGroup()
+        # populate diagonal group with the (continuous) right diagonal.
+        for part_num, part_size in enumerate(partition_sequence):
+            if part_num == 0 or partition_sequence[part_num] == partition_sequence[part_num-1]-1:
+                diagonal_group.add(ferrer.coordinate_dictionary[(part_num, part_size-1)])
+            else:
+                diagonal_group.length = part_num
+                break
+        # get the bottom part and its length.
+        bottom_group = VGroup()
+        for dot in ferrer.parts[len(partition_sequence)-1]:
+            bottom_group.add(dot)
+            bottom_group.length = len(ferrer.parts[len(partition_sequence)-1])
+        if (bottom_group.length == diagonal_group.length or bottom_group.length == diagonal_group.length+1) and diagonal_group.length == len(partition_sequence):
+            print("doing nothing")
+        elif diagonal_group.length > bottom_group.length:
+            ferrer.updatePaddingDistance()
+            landing_strip = VGroup()
+            for dot in diagonal_group:
+                if dot.location[0] < bottom_group.length:
+                    landing_strip.add(dot)
+            animations.append(ApplyMethod(bottom_group.move_to, landing_strip.get_center()+ferrer.RELATIVE_RIGHT))
+            for dot in bottom_group:
+                target_part_num = bottom_group.length - 1 - dot.location[1]
+                target_part_size = len(ferrer.parts[target_part_num])-1
+                animations.append(ApplyMethod(dot.move_to, ferrer.coordinate_dictionary[(target_part_num, target_part_size)].get_center() + ferrer.RELATIVE_RIGHT))
+                dot.location = (target_part_num, target_part_size+1)
+            print(ferrer.partition_sequence, "is Franklin involuting to", partition_sequence[:-1] + 1)
+            ferrer.partition_sequence = partition_sequence[:-1] + 1
+            ferrer.updateLayers()
+            ferrer.updateDictionary()
+            ferrer.updateParts()
+        elif diagonal_group.length <= bottom_group.length:
+            # move diagonal group to bottom group
+            ferrer.updatePaddingDistance()
+            landing_strip = VGroup()
+            for dot in bottom_group:
+                if dot.location[1] < diagonal_group.length:
+                    landing_strip.add(dot)
+            animations.append(ApplyMethod(diagonal_group.move_to, landing_strip.get_center() + ferrer.RELATIVE_DOWN))
+            for dot in diagonal_group:
+                target_part_num = len(ferrer.parts)-1
+                target_part_size = (diagonal_group.length-1) - dot.location[0]
+                animations.append(ApplyMethod(dot.move_to, ferrer.coordinate_dictionary[(target_part_num, target_part_size)].get_center() + ferrer.RELATIVE_DOWN))
+                dot.location = (target_part_num + 1, target_part_size)
+            for i in range(diagonal_group.length):
+                ferrer.partition_sequence[i] = ferrer.partition_sequence[i]-1
+            ferrer.partition_sequence = np.append(ferrer.partition_sequence, diagonal_group.length)
+            ferrer.updateLayers()
+            ferrer.updateDictionary()
+            ferrer.updateParts()
+
+        super().__init__(*animations)
+
 class FerrersDiagramDemonstration(Scene):
     def construct(self):
-        ferrer = FerrersDiagram(partition_sequence=np.array([3,7,9,5,7]))
-        self.play(ShowCreation(ferrer))
-        self.play(SortingParts(ferrer))
-        self.play(Conjugating(ferrer))
-        self.play(Convoluting(ferrer))
+        self.play(FranklinInvoluting(ferrers_diagram))
+        self.wait(2)
+
+class FerrersDiagramDemonstration(Scene):
+    def construct(self):
+        ferrers_diagram = FerrersDiagram(partition_sequence=np.array([7,12,5,11,9,10,4]))
+        self.play(ShowCreation(ferrers_diagram))
+        self.play(SortingParts(ferrers_diagram))
+        self.play(FranklinInvoluting(ferrers_diagram))
+        self.play(Conjugating(ferrers_diagram))
+        self.play(Convoluting(ferrers_diagram))
