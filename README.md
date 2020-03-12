@@ -1,5 +1,5 @@
-# Ferrers Diagrams for Manim
-Manim implementation of Ferrer's diagrams, a tool for visualizing partitions.
+# Ferrer's Diagrams for Manim
+Manim implementation of Ferrer's/Young diagrams, a tool for visualizing partitions and partition bijections.
 ```
 class FerrersDiagramDemonstration(Scene):
     def construct(self):
