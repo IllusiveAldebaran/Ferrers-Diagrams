@@ -3,7 +3,7 @@ import numpy as np
 
 class FerrersDiagram(VGroup):
     def __init__(self, partition_sequence, padding = .3, center_x = 0, center_y = 0, color = WHITE, shape = "circle"):
-        assert shape in ["circle", "square"]
+        assert shape in ["circle", "ferrer", "young", "square"]
         self.color = color
         self.partition_sequence = partition_sequence
         self.constituent_shapes = [];
@@ -11,8 +11,8 @@ class FerrersDiagram(VGroup):
         for i in range(np.size(partition_sequence)):
              cell = partition_sequence[i]
              for j in range(cell):
-                if shape == "square":
-                    dot = Square(side_length=.5).set_color(color)
+                if shape == "square" or shape == "young":
+                    dot = Square(side_length=padding).set_color(color)
                 else:
                     dot = Dot().set_color(color)
                 dot.location = (i,j) # (down, right)
@@ -131,9 +131,6 @@ class _ShiftALayerCompletely(Succession):
             raise Exception("Convolution must take in a Ferrer's Diagram object")
 
 class _Justify(AnimationGroup):
-    CONFIG = {
-        "run_time": .5
-    }
     def __init__(self, ferrer):
         self.check_if_input_is_ferrers_diagram(ferrer)
         animations = []
@@ -304,7 +301,7 @@ class FerrersDiagramDemonstration(Scene):
         "camera_config": {"background_color": "#181818"}
     }
     def construct(self):
-        ferrers_diagram = FerrersDiagram(partition_sequence=np.array([12,11,10,9,5,4]), color="#46a0ee", center_x=-3, center_y=2)
+        ferrers_diagram = FerrersDiagram(partition_sequence=np.array([12,11,10,9,5,4]), shape="square", color="#46a0ee", center_x=-3, center_y=2).scale(.8)
         text = TextMobject("Franklin Involution").next_to(ferrers_diagram, direction=UP, buff=SMALL_BUFF).scale(.5)
         ferrers_diagram2 = FerrersDiagram(partition_sequence=np.array([7,6,5,3,1]), color="#8949d2", center_x=3, center_y=2)
         text2 = TextMobject("Conjugation").next_to(ferrers_diagram2, direction=UP, buff=SMALL_BUFF).scale(.5)
