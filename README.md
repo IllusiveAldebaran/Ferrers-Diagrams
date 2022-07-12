@@ -1,4 +1,6 @@
 # Ferrer's Diagrams for Manim
+Original by patrickshox
+
 Manim implementation of Ferrer's/Young diagrams, a tool for visualizing partitions and partition bijections.
 ```
 class FerrersDiagramDemonstration(Scene):
