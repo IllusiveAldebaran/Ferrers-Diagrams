@@ -1,6 +1,8 @@
 # Ferrer's Diagrams for Manim
 Original by patrickshox
 
+Currently Convolution does not work
+
 Manim implementation of Ferrer's/Young diagrams, a tool for visualizing partitions and partition bijections.
 ```
 class FerrersDiagramDemonstration(Scene):
